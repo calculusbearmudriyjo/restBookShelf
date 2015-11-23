@@ -11,6 +11,11 @@ use Phalcon\Mvc\Router;
         'action' => 'index'
     ));
 
+    $router->addGet("/books", array(
+        'controller' => 'book',
+        'action'     => 'getBook'
+    ));
+
     $router->addGet('/:controller/:int/([a-zA-Z0-9_-]+)', array(
         'controller'    => 1,
         'action'        => "list",
@@ -22,10 +27,10 @@ use Phalcon\Mvc\Router;
         'action'     => "get",
         'id'         => 2
     ));
-    $router->addGet('/:controller', array(
-        'controller' => 1,
-        'action'     => "list"
-    ));
+//    $router->addGet('/:controller', array(
+//        'controller' => 1,
+//        'action'     => "list"
+//    ));
 
     $router->addPost('/:controller', array(
         'controller' => 1,
@@ -48,7 +53,7 @@ use Phalcon\Mvc\Router;
 
     $router->notFound(array(
         'controller' => 'error',
-        'action' => 'page404'        
+        'action' => 'page404'
     ));
 
     $router->setDefaults(array(

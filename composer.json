@@ -1,7 +1,8 @@
 {
     "name": "alexander/rest",
     "require": {
-        "robmorgan/phinx": "^0.4.6"
+        "robmorgan/phinx": "^0.4.6",
+        "phalcon/devtools": "dev-master"
     },
     "authors": [
         {

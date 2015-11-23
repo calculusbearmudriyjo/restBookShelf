@@ -2,12 +2,12 @@
 
 return new \Phalcon\Config(array(
     'database' => array(
-        'adapter'     => 'Mysql',
         'host'        => 'localhost',
-        'username'    => 'root',
-        'password'    => '',
-        'dbname'      => 'example',
+        'username'    => 'books_admin',
+        'password'    => 'test',
+        'dbname'      => 'books',
     ),
+
     'application' => array(
         'modelsDir'      => __DIR__ . '/../../app/models/',
         'viewsDir'       => __DIR__ . '/../../app/views/',
