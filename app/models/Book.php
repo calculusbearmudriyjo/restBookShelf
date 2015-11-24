@@ -1,6 +1,6 @@
 <?php
 
-class Books extends \Phalcon\Mvc\Model
+class Book extends \Phalcon\Mvc\Model
 {
     public $id;
     public $title;

@@ -1,11 +1,17 @@
 <?php
 
-class BookController extends RestController
+class BooksController extends RestController
 {
-    public function getBookAction()
+    public function listAction()
     {
-        $books = new Books();
-        var_dump($books->find()->getFirst()->title);
-        exit;
+        $books = new Book();
+        var_dump(Book::query()
+            ->where("id = :id:")
+            ->limit(20)
+            ->bind(["id" => "0"])
+            ->execute()
+            ->toArray());exit;
+        $this->request->getQuery();
+        echo json_encode($books->find()->toArray());
     }
 }

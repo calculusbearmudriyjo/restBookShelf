@@ -11,9 +11,9 @@ use Phalcon\Mvc\Router;
         'action' => 'index'
     ));
 
-    $router->addGet("/books", array(
+    $router->addGet("/book", array(
         'controller' => 'book',
-        'action'     => 'getBook'
+        'action'     => 'list'
     ));
 
     $router->addGet('/:controller/:int/([a-zA-Z0-9_-]+)', array(
