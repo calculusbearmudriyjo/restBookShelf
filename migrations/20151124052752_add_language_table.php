@@ -14,7 +14,7 @@ class AddLanguageTable extends AbstractMigration
         $this->execute("
             CREATE TABLE language (
                 id           integer NOT NULL default nextval('language_id_seq'),
-                text        varchar(256) NOT NULL,
+                name         varchar(256) NOT NULL,
                 CONSTRAINT   id_language_pk PRIMARY KEY (id)
             )");
     }

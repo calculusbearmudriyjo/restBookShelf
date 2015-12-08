@@ -29,11 +29,16 @@ $di->set('router', function(){
 $di->set('url', function () use ($config) {
     $url = new UrlResolver();
     $url->setBaseUri($config->application->baseUri);
-
     return $url;
 }, true);
 
+$di->set('request', function() {
+    return new \Phalcon\Http\Request();
+});
 
+$di->set('response', function() {
+    return new \Phalcon\Http\Response();
+});
 /**
  * Database connection is created based in the parameters defined in the configuration file
  */

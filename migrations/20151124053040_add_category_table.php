@@ -14,7 +14,7 @@ class AddCategoryTable extends AbstractMigration
         $this->execute("
             CREATE TABLE category (
                 id           integer NOT NULL default nextval('category_id_seq'),
-                text        varchar(256) NOT NULL,
+                name         varchar(256) NOT NULL UNIQUE,
                 CONSTRAINT   id_category_pk PRIMARY KEY (id)
             )");
     }

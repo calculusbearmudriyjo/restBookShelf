@@ -14,7 +14,7 @@ class AddComplexityTable extends AbstractMigration
         $this->execute("
             CREATE TABLE complexity (
                 id           integer NOT NULL default nextval('complexity_id_seq'),
-                text        varchar(256) NOT NULL,
+                name         varchar(256) NOT NULL,
                 CONSTRAINT   id_complexity_pk PRIMARY KEY (id)
             )");
     }

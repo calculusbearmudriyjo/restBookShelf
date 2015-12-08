@@ -6,59 +6,172 @@ use Phalcon\Mvc\Router;
 
     $router->removeExtraSlashes(true);
 
-    $router->add("/", array(
-        'controller' => 'index',
-        'action' => 'index'
-    ));
-
+/* BOOK */
     $router->addGet("/book", array(
         'controller' => 'book',
         'action'     => 'list'
     ));
 
-    $router->addGet('/:controller/:int/([a-zA-Z0-9_-]+)', array(
-        'controller'    => 1,
-        'action'        => "list",
-        'id'            => 2,
-        'relationship'  => 3
+    $router->addGet("/book/:int", array(
+        'controller' => 'book',
+        'action'     => 'book',
+        'id'         => 1
     ));
-    $router->addGet('/:controller/:int', array(
-        'controller' => 1,
-        'action'     => "get",
-        'id'         => 2
-    ));
-//    $router->addGet('/:controller', array(
-//        'controller' => 1,
-//        'action'     => "list"
-//    ));
 
-    $router->addPost('/:controller', array(
-        'controller' => 1,
+    $router->addPost('/book', array(
+        'controller' => 'book',
         'action'     => "save"
     ));
 
-    $router->addPut('/:controller/:int', array(
-        'controller' => 1,
-        'action'     => "save",
-        'id'         => 2
+    $router->addPut('/book/:int', array(
+        'controller' => 'book',
+        'action'     => "update",
+        'id'         => 1
     ));
 
-
-    $router->addDelete('/:controller/:int', array(
-        'controller' => 1,
+    $router->addDelete('/book/:int', array(
+        'controller' => 'book',
         'action'     => "delete",
-        'id'         => 2
+        'id'         => 1
+    ));
+/* BOOK */
+
+/* LANGUAGE */
+    $router->addGet("/language", array(
+        'controller' => 'language',
+        'action'     => 'list'
     ));
 
-
-    $router->notFound(array(
-        'controller' => 'error',
-        'action' => 'page404'
+    $router->addGet("/language/:int", array(
+        'controller' => 'language',
+        'action'     => 'language',
+        'id'         => 1
     ));
 
-    $router->setDefaults(array(
-        'controller' => 'index',
-        'action' => 'index'
+    $router->addPost('/language', array(
+        'controller' => 'language',
+        'action'     => "save"
     ));
+
+    $router->addPut('/language/:int', array(
+        'controller' => 'language',
+        'action'     => "update",
+        'id'         => 1
+    ));
+
+    $router->addDelete('/language/:int', array(
+        'controller' => 'language',
+        'action'     => "delete",
+        'id'         => 1
+    ));
+/* LANGUAGE */
+
+/* COMPLEXITY */
+    $router->addGet("/complexity", array(
+        'controller' => 'complexity',
+        'action'     => 'list'
+    ));
+
+    $router->addGet("/complexity/:int", array(
+        'controller' => 'complexity',
+        'action'     => 'complexity',
+        'id'         => 1
+    ));
+
+    $router->addPost('/complexity', array(
+        'controller' => 'complexity',
+        'action'     => "save"
+    ));
+
+    $router->addPut('/complexity/:int', array(
+        'controller' => 'complexity',
+        'action'     => "update",
+        'id'         => 1
+    ));
+
+    $router->addDelete('/complexity/:int', array(
+        'controller' => 'complexity',
+        'action'     => "delete",
+        'id'         => 1
+    ));
+/* COMPLEXITY */
+
+/* CATEGORY */
+    $router->addGet("/category", array(
+        'controller' => 'category',
+        'action'     => 'list'
+    ));
+
+    $router->addGet("/category/:int", array(
+        'controller' => 'category',
+        'action'     => 'category',
+        'id'         => 1
+    ));
+
+    $router->addPost('/category', array(
+        'controller' => 'category',
+        'action'     => "save"
+    ));
+
+    $router->addPut('/category/:int', array(
+        'controller' => 'category',
+        'action'     => "update",
+        'id'         => 1
+    ));
+
+    $router->addDelete('/category/:int', array(
+        'controller' => 'category',
+        'action'     => "delete",
+        'id'         => 1
+    ));
+/* CATEGORY */
+
+/* CATEGORY BOOKS*/
+    $router->addGet("/category-books", array(
+        'controller' => 'category-books',
+        'action'     => 'list'
+    ));
+
+    $router->addGet("/category-books/:int", array(
+        'controller' => 'category-books',
+        'action'     => 'category',
+        'id'         => 1
+    ));
+
+    $router->addPost('/category-books', array(
+        'controller' => 'category-books',
+        'action'     => "save"
+    ));
+
+    $router->addDelete('/category-books/:int', array(
+        'controller' => 'category-books',
+        'action'     => "delete",
+        'id'         => 1
+    ));
+/* CATEGORY BOOKS */
+
+/* RATING */
+    $router->addGet("/rating", array(
+        'controller' => 'rating',
+        'action'     => 'list'
+    ));
+
+    $router->addGet("/rating/:int", array(
+        'controller' => 'rating',
+        'action'     => 'category',
+        'id'         => 1
+    ));
+
+    $router->addPost('/rating', array(
+        'controller' => 'rating',
+        'action'     => "save"
+    ));
+
+    $router->addDelete('/rating/:int', array(
+        'controller' => 'rating',
+        'action'     => "delete",
+        'id'         => 1
+    ));
+/* RATING */
 
 return $router;
