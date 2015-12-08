@@ -117,3 +117,8 @@ CRUD (Create, Read, Update, Delete).
     (phinx)[https://phinx.org/]
 
 7. Apply Migration vendor/robmorgan/phinx/bin/phinx migrate -e production in root directory.
+
+
+#### AUTH
+    - In project used basic http auth
+    exmaple for js: [ajax](http://stackoverflow.com/questions/5507234/how-to-use-basic-auth-and-jquery-and-ajax)
