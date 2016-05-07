@@ -19,13 +19,4 @@ class BaseController extends \Phalcon\Mvc\Controller
         }
         return false;
     }
-
-    protected function _createUser()
-    {
-        $login = 'admin';
-        $password = 'admin';
-
-        $db = Di::getDefault()->get('db');
-        $db->query('INSERT INTO users VALUES (default, ?, ?)', [$login, $this->security->hash($password)]);
-    }
 }
