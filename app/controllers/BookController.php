@@ -52,17 +52,14 @@ class BookController extends BaseController
     public function bookAction($id)
     {
         try {
-            $book = Book::query()
-                ->andWhere('Book.id = :id:')
-                ->leftJoin('CategoryBooks', 'CategoryBooks.book_id = Book.id')
-                ->bind(['id' => $id])
-                ->execute();
-
-            echo json_encode($this->_bookToArray($book[0]), JSON_UNESCAPED_UNICODE);
-            exit;
-        } catch (Exception $e) {
+            /** @var Book $book */
+            $book = (new Book())->getBookById($id);
+        } catch (\HttpException $e) {
             $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+            return;
         }
+
+        echo json_encode($book->bookToArray(), JSON_UNESCAPED_UNICODE);
     }
 
     public function saveAction()
@@ -162,22 +159,6 @@ class BookController extends BaseController
             }
         } else {
             $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
-        }
-    }
-
-    /**
-     * @param array $array
-     * @return string
-     */
-    protected function _convertArrayToPsqlArray($array)
-    {
-        if(!empty($array) && is_array($array))
-        {
-            $psqlInsertArray = "'{";
-            $psqlInsertArray .= implode(',', $array) . "}'";
-            return $psqlInsertArray;
-        } else {
-            return "'{}'";
         }
     }
 }

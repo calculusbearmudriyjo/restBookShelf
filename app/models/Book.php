@@ -3,6 +3,15 @@ namespace app\models;
 
 class Book extends base\Book
 {
+    public function getBookById($bookId) {
+        $book = Book::query()
+            ->andWhere('app\models\Book.id = :id:')
+            ->leftJoin('app\models\base\CategoryBooks', 'app\models\base\CategoryBooks.book_id = app\models\Book.id')
+            ->bind(['id' => $bookId])
+            ->execute();
+
+        return $book[0];
+    }
 
     public function getBooksByParams(Language $language, Complexity $complexity, Category $category) {
 
@@ -58,5 +67,21 @@ class Book extends base\Book
     {
         $criteria->addWhere("{$columnName}_id = :{$columnName}:", [$columnName => $columnValue]);
         return $criteria;
+    }
+
+    /**
+     * @param array $array
+     * @return string
+     */
+    protected function _convertArrayToPsqlArray($array)
+    {
+        if(!empty($array) && is_array($array))
+        {
+            $psqlInsertArray = "'{";
+            $psqlInsertArray .= implode(',', $array) . "}'";
+            return $psqlInsertArray;
+        } else {
+            return "'{}'";
+        }
     }
 }
