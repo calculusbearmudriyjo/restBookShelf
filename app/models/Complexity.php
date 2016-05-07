@@ -1,20 +1,8 @@
 <?php
 
-class Complexity extends \Phalcon\Mvc\Model
+namespace app\models;
+
+class Complexity extends base\Complexity
 {
-    public $id;
-    public $name;
 
-    public function initialize()
-    {
-        $this->hasOne(
-            "id",
-            "Book",
-            "complexity_id"
-    	);
-	}
-
-    public function getSource() {
-        return 'complexity';
-    }
 }

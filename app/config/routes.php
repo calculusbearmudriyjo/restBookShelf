@@ -5,6 +5,7 @@ use Phalcon\Mvc\Router;
 	$router = new Router();
 
     $router->removeExtraSlashes(true);
+    $router->setDefaultNamespace("app\\controllers");
 
 /* BOOK */
     $router->addGet("/book", array(

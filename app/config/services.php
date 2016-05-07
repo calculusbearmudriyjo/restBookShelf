@@ -39,6 +39,10 @@ $di->set('request', function() {
 $di->set('response', function() {
     return new \Phalcon\Http\Response();
 });
+
+$di->set('httpCode', function() {
+    return new app\library\HttpCode();
+});
 /**
  * Database connection is created based in the parameters defined in the configuration file
  */
@@ -65,7 +69,7 @@ $di->set('view', function() use ($config){
     $view = new View();
     $view->setViewsDir($config->application->viewsDir);
     $view->registerEngines(array(
-        ".phtml" => "Phalcon\Mvc\View\Engine\Php"
+        ".phtml" => "Phalcon\\Mvc\\View\\Engine\\Php"
     ));
     return $view;
 });

@@ -1,21 +1,8 @@
 <?php
 
-class Rating extends \Phalcon\Mvc\Model
+namespace app\models;
+
+class Rating extends base\Rating
 {
-    public $id;
-    public $book_id;
-    public $rating;
 
-    public function initialize()
-    {
-        $this->hasOne(
-            "book_id",
-            "Book",
-            "id"
-        );
-    }
-
-    public function getSource() {
-        return 'rating';
-    }
 }

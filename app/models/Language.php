@@ -1,20 +1,8 @@
 <?php
 
-class Language extends \Phalcon\Mvc\Model
+namespace app\models;
+
+class Language extends base\Language
 {
-    public $id;
-    public $name;
 
-    public function initialize()
-    {
-        $this->hasOne(
-            "id",
-            "Book",
-            "language_id"
-    	);
-	}
-
-    public function getSource() {
-        return 'language';
-    }
 }

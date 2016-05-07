@@ -1,21 +1,8 @@
 <?php
 
-class Category extends \Phalcon\Mvc\Model
+namespace app\models;
+
+class Category extends base\Category
 {
-    public $id;
-    public $name;
 
-    public function initialize()
-    {
-        $this->hasMany(
-            "id",
-            "CategoryBooks",
-            "category_id"
-    	);
-
-	}
-
-    public function getSource() {
-        return 'category';
-    }
 }

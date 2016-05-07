@@ -6,6 +6,7 @@ $config = new ConfigIni("config.ini");
 return $config->merge(new \Phalcon\Config(array(
     'application' => array(
         'modelsDir'      => __DIR__ . '/../../app/models/',
+        'modelsBaseDir'  => __DIR__ . '/../../app/models/base',
         'viewsDir'       => __DIR__ . '/../../app/views/',
         'controllersDir' => __DIR__ . '/../../app/controllers/',
         'languagesDir'   => __DIR__ . '/../../app/languages/',

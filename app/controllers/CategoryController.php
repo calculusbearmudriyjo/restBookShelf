@@ -1,4 +1,6 @@
 <?php
+namespace app\controllers;
+
 use \Phalcon\Di as Di;
 use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
 

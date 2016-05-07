@@ -1,11 +1,8 @@
 <?php
 
-use Phalcon\Mvc\Model\Validator\Email as Email;
-use Phalcon\Mvc\Model\Validator\PresenceOf;
+namespace app\models;
 
-class Users extends \Phalcon\Mvc\Model
+class Users extends base\Users
 {
-    public $id;
-    public $login;
-    public $password;
+
 }

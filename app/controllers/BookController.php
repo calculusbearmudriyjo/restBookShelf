@@ -1,48 +1,52 @@
 <?php
+namespace app\controllers;
 
+use app\library\HttpCode;
 use Phalcon\Di;
 use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
+use app\models\Book as Book;
+use app\models\Language as Language;
+use app\models\Complexity as Complexity;
+use app\models\Category as Category;
 
 class BookController extends BaseController
 {
+    /** @var Request $_request  */
     protected $_request = null;
+    /** @var Response $_request  */
     protected $_response = null;
+    /** @var HttpCode $_request  */
+    protected $_httpCode = null;
 
     public function initialize()
     {
         $this->_request = Di::getDefault()->get('request');
         $this->_response = Di::getDefault()->get('response');
+        $this->_httpCode = Di::getDefault()->get('httpCode');
     }
 
     public function listAction()
     {
         $resultJson = [];
+
+        $language = Language::findFirst($this->_request->get('language'));
+        $complexity = Complexity::findFirst($this->_request->get('complexity'));
+        $category = Category::findFirst($this->_request->get('category'));
+
         try {
-
-            $query = Book::query();
-            $this->_addWhereIfExist($query, 'language');
-            $this->_addWhereIfExist($query, 'complexity');
-
-            $category = $this->_request->get('category');
-            if(!empty($category))
-            {
-                $query->leftJoin('CategoryBooks', 'CategoryBooks.book_id = Book.id');
-                $query->conditions('CategoryBooks.category_id = :category:')
-                    ->bind(['category' => $category]);
-            }
-
-            $books = $query->execute();
-
-            foreach($books as $book)
-            {
-                $resultJson[] = $this->_bookToArray($book);
-            }
-
-            echo json_encode($resultJson, JSON_UNESCAPED_UNICODE);
-            exit;
-        } catch (Exception $e) {
-            $this->response->setStatusCode(404, 'Not Found');
+            $books = (new Book())->getBooksByParams($language, $complexity, $category);
+        } catch (\HttpException $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+            return;
         }
+
+        /** @var Book $book */
+        foreach($books as $book)
+        {
+            $resultJson[] = $book->bookToArray();
+        }
+
+        echo json_encode($resultJson, JSON_UNESCAPED_UNICODE);
     }
 
     public function bookAction($id)
@@ -57,7 +61,7 @@ class BookController extends BaseController
             echo json_encode($this->_bookToArray($book[0]), JSON_UNESCAPED_UNICODE);
             exit;
         } catch (Exception $e) {
-            $this->response->setStatusCode(404, 'Not Found');
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
         }
     }
 
@@ -86,10 +90,10 @@ class BookController extends BaseController
                         $complexity_id
                     ]);
             } catch (Exception $e) {
-                $this->response->setStatusCode(422, 'missing parameters or ' . $e->getMessage());
+                $this->response->setStatusCode($this->_httpCode->unprocessableEntity(), 'missing parameters or ' . $e->getMessage());
             }
         } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
         }
     }
 
@@ -124,14 +128,14 @@ class BookController extends BaseController
                 if($book->save() == false)
                 {
                     $transaction->rollback();
-                    $this->response->setStatusCode(500, 'error save');
+                    $this->response->setStatusCode($this->_httpCode->internalServerError(), 'error save');
                 }
                 $transaction->commit();
             } else {
-                $this->response->setStatusCode(422, 'missing parameters');
+                $this->response->setStatusCode($this->_httpCode->unprocessableEntity(), 'missing parameters');
             }
         } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
         }
     }
 
@@ -149,62 +153,16 @@ class BookController extends BaseController
                 if($book->delete() == false)
                 {
                     $transaction->rollback();
-                    $this->response->setStatusCode(500, 'error delete');
+                    $this->response->setStatusCode($this->_httpCode->internalServerError(), 'error delete');
                 }
 
                 $transaction->commit();
             } else {
-                $this->response->setStatusCode(422, 'missing parameters');
+                $this->response->setStatusCode($this->_httpCode->unprocessableEntity(), 'missing parameters');
             }
         } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
         }
-    }
-
-    /**
-     * @param \Phalcon\Mvc\Model\Criteria $criteria
-     * @param $columnName
-     * @return \Phalcon\Mvc\Model\Criteria
-     */
-    protected function _addWhereIfExist(\Phalcon\Mvc\Model\Criteria $criteria, $columnName)
-    {
-        $queryFieldValue = $this->_request->get($columnName);
-        if(!is_null($queryFieldValue) && !is_array($queryFieldValue))
-        {
-            $criteria->addWhere("{$columnName}_id = :{$columnName}:", [$columnName => $queryFieldValue]);
-        }
-        return $criteria;
-    }
-
-    /**
-     * @param Book $book
-     * @return array
-     */
-    protected function _bookToArray(Book $book)
-    {
-        $resultJson = [
-            'book' => [
-                'category' => [],
-                'complexity' => [],
-                'language' => []
-            ]
-        ];
-
-        $resultJson['book'] = $book->toArray();
-        foreach ($book->categoryBooks as $categoryBook) {
-            $resultJson['book']['category'][$categoryBook->category->id] = $categoryBook->category->name;
-        }
-
-        $resultJson['book']['rating'] = Rating::average([
-            'column' => 'rating',
-            'book_id = :id:',
-            'bind' => ['id' => $book->id]
-        ]);
-
-        $resultJson['book']['complexity'][$book->complexity->id] = $book->complexity->name;
-        $resultJson['book']['language'][$book->language->id] = $book->language->name;
-
-        return $resultJson;
     }
 
     /**

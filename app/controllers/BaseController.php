@@ -1,4 +1,6 @@
 <?php
+namespace app\controllers;
+
 use \Phalcon\Di as Di;
 
 class BaseController extends \Phalcon\Mvc\Controller
