@@ -1,16 +1,25 @@
 <?php
 namespace app\models;
 
+use app\exception\HttpNotFound;
+use Phalcon\Di;
+use Phalcon\Exception;
+use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
+
 class Book extends base\Book
 {
     public function getBookById($bookId) {
-        $book = Book::query()
+        $books = Book::query()
             ->andWhere('app\models\Book.id = :id:')
             ->leftJoin('app\models\base\CategoryBooks', 'app\models\base\CategoryBooks.book_id = app\models\Book.id')
             ->bind(['id' => $bookId])
             ->execute();
 
-        return $book[0];
+        if(!is_array($books) || count($books) == 0) {
+            throw new HttpNotFound;
+        }
+
+        return $books[0];
     }
 
     public function getBooksByParams(Language $language, Complexity $complexity, Category $category) {
@@ -26,7 +35,63 @@ class Book extends base\Book
                 ->bind(['category' => $category->getId()]);
         }
 
-        return $query->execute();
+        $result = $query->execute();
+
+        if(!is_array($result) || count($result) == 0) {
+            throw new HttpNotFound;
+        }
+
+        return $result;
+    }
+
+    public function insert() {
+        /** @var \Phalcon\Db\Adapter\Pdo\Postgresql $db */
+        $db = Di::getDefault()->get('db');
+        $db->begin();
+
+        try {
+            $db->query('INSERT INTO book VALUES (default, ?, ?, now(), ?, ' . $this->_convertArrayToPsqlArray($this->images) . ', ' . $this->_convertArrayToPsqlArray($this->external_links) . ', ?, ?, ?)',
+                [
+                    $this->title,
+                    $this->description,
+                    $this->date_publish,
+                    $this->language_id,
+                    $this->url,
+                    $this->complexity_id
+                ]);
+            $db->commit();
+        } catch (Exception $e) {
+            $db->rollback();
+        }
+    }
+
+    public function updateBook() {
+        $transactionManager = new TransactionManager();
+        $transaction = $transactionManager->get();
+        $this->setTransaction($transaction);
+        $this->images = new \Phalcon\Db\RawValue($this->_convertArrayToPsqlArray($this->images));
+        $this->external_links = new \Phalcon\Db\RawValue($this->_convertArrayToPsqlArray($this->external_links));
+
+        if($this->save() == false)
+        {
+            $transaction->rollback();
+            throw new Exception();
+        }
+        $transaction->commit();
+    }
+
+    public function deleteBook() {
+        $transactionManager = new TransactionManager();
+        $transaction = $transactionManager->get();
+        $this->setTransaction($transaction);
+
+        if($this->delete() == false)
+        {
+            $transaction->rollback();
+            throw new Exception();
+        }
+
+        $transaction->commit();
     }
     /**
      * @return array

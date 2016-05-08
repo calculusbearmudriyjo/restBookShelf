@@ -1,13 +1,17 @@
 <?php
 namespace app\controllers;
 
+use app\exception\HttpAccessException;
+use app\exception\HttpMissingParametersException;
+use app\exception\HttpNotFound;
+use app\exception\MissingParametersException;
 use app\library\HttpCode;
 use Phalcon\Di;
-use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
 use app\models\Book as Book;
 use app\models\Language as Language;
 use app\models\Complexity as Complexity;
 use app\models\Category as Category;
+use \Phalcon\Exception;
 
 class BookController extends BaseController
 {
@@ -35,7 +39,7 @@ class BookController extends BaseController
 
         try {
             $books = (new Book())->getBooksByParams($language, $complexity, $category);
-        } catch (\HttpException $e) {
+        } catch (HttpNotFound $e) {
             $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
             return;
         }
@@ -46,6 +50,7 @@ class BookController extends BaseController
             $resultJson[] = $book->bookToArray();
         }
 
+        $this->response->setStatusCode($this->_httpCode->ok());
         echo json_encode($resultJson, JSON_UNESCAPED_UNICODE);
     }
 
@@ -54,111 +59,94 @@ class BookController extends BaseController
         try {
             /** @var Book $book */
             $book = (new Book())->getBookById($id);
-        } catch (\HttpException $e) {
+        } catch (HttpNotFound $e) {
             $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
             return;
         }
 
+        $this->response->setStatusCode($this->_httpCode->ok());
         echo json_encode($book->bookToArray(), JSON_UNESCAPED_UNICODE);
     }
 
     public function saveAction()
     {
-        if($this->_auth()) {
-            $db = Di::getDefault()->get('db');
+        try {
+            $this->_auth();
 
-            $title = Di::getDefault()->get('request')->get('title');
-            $description = Di::getDefault()->get('request')->get('description');
-            $date_publish = Di::getDefault()->get('request')->get('date_publish');
-            $images = $this->_convertArrayToPsqlArray(Di::getDefault()->get('request')->get('images'));
-            $external_links = $this->_convertArrayToPsqlArray(Di::getDefault()->get('request')->get('external_links'));
-            $language_id = Di::getDefault()->get('request')->get('language_id');
-            $url = Di::getDefault()->get('request')->get('url');
-            $complexity_id = Di::getDefault()->get('request')->get('complexity_id');
-
-            try {
-                $db->query('INSERT INTO book VALUES (default, ?, ?, now(), ?, ' . $images . ', ' . $external_links . ', ?, ?, ?)',
-                    [
-                        $title,
-                        $description,
-                        $date_publish,
-                        $language_id,
-                        $url,
-                        $complexity_id
-                    ]);
-            } catch (Exception $e) {
-                $this->response->setStatusCode($this->_httpCode->unprocessableEntity(), 'missing parameters or ' . $e->getMessage());
-            }
-        } else {
+            $book = new Book();
+            $this->_mappingParameters($book);
+            $book->insert();
+            $this->response->setStatusCode($this->_httpCode->ok());
+            return;
+        } catch (HttpAccessException $e) {
             $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
+        } catch (HttpMissingParametersException $e) {
+            $this->response->setStatusCode($this->_httpCode->unprocessableEntity(), 'missing parameters');
+        } catch (Exception $e) {
+            $this->response->setStatusCode($this->_httpCode->unprocessableEntity(), 'missing parameters');
         }
     }
 
     public function updateAction($id)
     {
-        if($this->_auth()) {
-            $title = Di::getDefault()->get('request')->get('title');
-            $description = Di::getDefault()->get('request')->get('description');
-            $date_publish = Di::getDefault()->get('request')->get('date_publish');
-            $images = $this->_convertArrayToPsqlArray(Di::getDefault()->get('request')->get('images'));
-            $external_links = $this->_convertArrayToPsqlArray(Di::getDefault()->get('request')->get('external_links'));
-            $language_id = Di::getDefault()->get('request')->get('language_id');
-            $url = Di::getDefault()->get('request')->get('url');
-            $complexity_id = Di::getDefault()->get('request')->get('complexity_id');
-
-            /** @var Book $book */
+        try {
+            $this->_auth();
             $book = Book::findFirst($id);
-
-            if ($book && !empty($book)) {
-                $transactionManager = new TransactionManager();
-                $transaction = $transactionManager->get();
-                $book->setTransaction($transaction);
-                $book->title = $title;
-                $book->description = $description;
-                $book->date_publish = $date_publish;
-                $book->images = new \Phalcon\Db\RawValue($images);
-                $book->external_links = new \Phalcon\Db\RawValue($external_links);
-                $book->language_id = $language_id;
-                $book->url = $url;
-                $book->complexity_id = $complexity_id;
-
-                if($book->save() == false)
-                {
-                    $transaction->rollback();
-                    $this->response->setStatusCode($this->_httpCode->internalServerError(), 'error save');
-                }
-                $transaction->commit();
-            } else {
-                $this->response->setStatusCode($this->_httpCode->unprocessableEntity(), 'missing parameters');
+            if(!$book) {
+                throw new HttpNotFound();
             }
-        } else {
-            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
+            $this->_mappingParameters($book);
+            $book->updateBook();
+            $this->response->setStatusCode($this->_httpCode->ok());
+            return;
+        } catch (HttpAccessException $e) {
+            $this->response->setStatusCode($this->_httpCode->forbidden());
+        } catch (HttpMissingParametersException $e) {
+            $this->response->setStatusCode($this->_httpCode->unprocessableEntity(), 'missing parameters');
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+        } catch (Exception $e) {
+            $this->response->setStatusCode($this->_httpCode->internalServerError(), 'error save');
         }
     }
 
     public function deleteAction($id)
     {
-        if($this->_auth()) {
+        try {
+            $this->_auth();
+
             /** @var Book $book */
             $book = Book::findFirst($id);
-
-            if ($book) {
-                $transactionManager = new TransactionManager();
-                $transaction = $transactionManager->get();
-                $book->setTransaction($transaction);
-
-                if($book->delete() == false)
-                {
-                    $transaction->rollback();
-                    $this->response->setStatusCode($this->_httpCode->internalServerError(), 'error delete');
-                }
-
-                $transaction->commit();
-            } else {
-                $this->response->setStatusCode($this->_httpCode->unprocessableEntity(), 'missing parameters');
+            if(!$book) {
+                throw new HttpNotFound();
             }
-        } else {
+            $book->deleteBook();
+            $this->response->setStatusCode($this->_httpCode->ok());
+            return;
+        } catch(HttpAccessException $e) {
             $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+        } catch (Exception $e) {
+            $this->response->setStatusCode($this->_httpCode->internalServerError(), 'error delete');
         }
+    }
+
+    protected function _mappingParameters(Book $book)  {
+        if(!empty(Di::getDefault()->get('request')->get('title')) === false
+            || !empty(Di::getDefault()->get('request')->get('language_id')) === false
+            || !empty(Di::getDefault()->get('request')->get('complexity_id')) === false ) {
+            throw new HttpMissingParametersException();
+        }
+
+        $book->setTitle(Di::getDefault()->get('request')->get('title'));
+        $book->setDescription(Di::getDefault()->get('request')->get('description'));
+        $book->setDatePublish(Di::getDefault()->get('request')->get('date_publish'));
+        $book->setImages(Di::getDefault()->get('request')->get('images'));
+        $book->setExternalLinks(Di::getDefault()->get('request')->get('external_links'));
+        $book->setLanguageId(Di::getDefault()->get('request')->get('language_id'));
+        $book->setUrl(Di::getDefault()->get('request')->get('url'));
+        $book->setComplexityId(Di::getDefault()->get('request')->get('complexity_id'));
+        return $book;
     }
 }

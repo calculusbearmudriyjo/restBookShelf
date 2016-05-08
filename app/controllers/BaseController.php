@@ -18,7 +18,8 @@ class BaseController extends \Phalcon\Mvc\Controller
         $password = Di::getDefault()->get('request')->getServer('PHP_AUTH_PW');
 
         $user = Users::findFirstByLogin($login);
-        if ($user && $this->security->checkHash($password, $user->password)) {
+//        var_dump($this->security->hash($password));exit;
+        if ($user && $user->checkPassword('$2a$08$Fmelpv6WkGy9nBRyczKH9OV.WdG5dPQrB3tuivPOcPBr/AehCwLki')) {
             return true;
         }
         throw new HttpAccessException();
