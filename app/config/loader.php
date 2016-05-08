@@ -10,7 +10,8 @@ $loader->registerNamespaces(
         "app\\controllers"       => "../app/controllers/",
         "app\\models"            => "../app/models/",
         "app\\models\\base"      => "../app/models/base/",
-        "app\\library"           => "../app/library/"
+        "app\\library"           => "../app/library/",
+        "app\\exception"           => "../app/exception/"
     )
 )->register();
 

@@ -1,6 +1,8 @@
 <?php
 namespace app\controllers;
 
+use app\exception\HttpAccessException;
+use app\models\Users;
 use \Phalcon\Di as Di;
 
 class BaseController extends \Phalcon\Mvc\Controller
@@ -19,6 +21,6 @@ class BaseController extends \Phalcon\Mvc\Controller
         if ($user && $this->security->checkHash($password, $user->password)) {
             return true;
         }
-        return false;
+        throw new HttpAccessException();
     }
 }
