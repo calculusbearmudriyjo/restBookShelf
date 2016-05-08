@@ -1,91 +1,83 @@
 <?php
 namespace app\controllers;
 
+use app\exception\HttpAccessException;
+use app\exception\HttpNotFound;
+use app\models\Category;
 use \Phalcon\Di as Di;
-use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
+use Phalcon\Exception;
 
 class CategoryController extends BaseController
 {
     public function listAction()
     {
-        $category = Category::query()->execute();
-        echo json_encode($category->toArray(), JSON_UNESCAPED_UNICODE);
-        exit;
+        try {
+            $category = (new Category())->getAllCategory();
+            if(!$category) {
+                throw new HttpNotFound();
+            }
+            echo json_encode($category->toArray(), JSON_UNESCAPED_UNICODE);
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+        }
     }
 
     public function categoryAction($id)
     {
-        $category = Category::findFirst($id);
-        echo json_encode($category->toArray(), JSON_UNESCAPED_UNICODE);
-        exit;
+        try {
+            $category = (new Category())->getById($id);
+            if(!$category) {
+                throw new HttpNotFound();
+            }
+            echo json_encode($category->toArray(), JSON_UNESCAPED_UNICODE);
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+        }
     }
 
     public function saveAction()
     {
-        if($this->_auth()) {
-            $db = Di::getDefault()->get('db');
-            $category_name = Di::getDefault()->get('request')->get('name');
-
-            if (!empty($category_name)) {
-                $db->query('INSERT INTO complexity VALUES (default, ?)', [$category_name]);
-            } else {
-                $this->response->setStatusCode(422, 'missing parameters');
-            }
-        } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+        try {
+            $this->_auth();
+            $category = new Category();
+            $category->setName($this->_request->get('name'));
+            $category->saveCategory();
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'not found');
+        } catch (HttpAccessException $e) {
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
         }
     }
 
     public function updateAction($id)
     {
-        if($this->_auth()) {
-            $category_name = Di::getDefault()->get('request')->get('name');
-            /** @var Category $category */
-            $category = Category::findFirst($id);
-
-            if ($category) {
-                $transactionManager = new TransactionManager();
-                $transaction = $transactionManager->get();
-                $category->setTransaction($transaction);
-                $category->name = $category_name;
-
-                if($category->save() == false)
-                {
-                    $transaction->rollback();
-                    $this->response->setStatusCode(500, 'error save');
-                }
-                $transaction->commit();
-            } else {
-                $this->response->setStatusCode(422, 'missing parameters');
-            }
-        } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+        try {
+            $this->_auth();
+            $category = (new Category())->getById($id);
+            $category->setName($this->_request->get('name'));
+            $category->updateCategory();
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'not found');
+        } catch (HttpAccessException $e) {
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
+        } catch (Exception $e) {
+            $this->response->setStatusCode($this->_httpCode->internalServerError());
         }
     }
 
     public function deleteAction($id)
     {
-        if($this->_auth()) {
+        try {
+            $this->_auth();
             /** @var Category $category */
-            $category = Category::findFirst($id);
-
-            if ($category) {
-                $transactionManager = new TransactionManager();
-                $transaction = $transactionManager->get();
-                $category->setTransaction($transaction);
-
-                if($category->delete() == false)
-                {
-                    $transaction->rollback();
-                    $this->response->setStatusCode(500, 'error delete');
-                }
-
-                $transaction->commit();
-            } else {
-                $this->response->setStatusCode(422, 'missing parameters');
-            }
-        } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+            $category = (new Category())->getById($id);
+            $category->deleteCategory();
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'not found');
+        } catch (HttpAccessException $e) {
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
+        } catch (Exception $e) {
+            $this->response->setStatusCode($this->_httpCode->internalServerError());
         }
     }
 }

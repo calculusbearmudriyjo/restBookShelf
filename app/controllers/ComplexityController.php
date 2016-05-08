@@ -1,91 +1,84 @@
 <?php
 namespace app\controllers;
 
+use app\models\Complexity;
 use \Phalcon\Di as Di;
-use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
+use app\exception\HttpAccessException;
+use app\exception\HttpNotFound;
+use Phalcon\Exception;
 
 class ComplexityController extends BaseController
 {
+
     public function listAction()
     {
-        $complexity = Complexity::query()->execute();
-        echo json_encode($complexity->toArray(), JSON_UNESCAPED_UNICODE);
-        exit;
+        try {
+            $complexity = (new Complexity())->getAllComplexity();
+            if(!$complexity) {
+                throw new HttpNotFound();
+            }
+            echo json_encode($complexity->toArray(), JSON_UNESCAPED_UNICODE);
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+        }
     }
 
     public function complexityAction($id)
     {
-        $complexity = Complexity::findFirst($id);
-        echo json_encode($complexity->toArray(), JSON_UNESCAPED_UNICODE);
-        exit;
+        try {
+            $complexity = (new Complexity())->getById($id);
+            if(!$complexity) {
+                throw new HttpNotFound();
+            }
+            echo json_encode($complexity->toArray(), JSON_UNESCAPED_UNICODE);
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+        }
     }
 
     public function saveAction()
     {
-        if($this->_auth()) {
-            $db = Di::getDefault()->get('db');
-            $complexity_name = Di::getDefault()->get('request')->get('name');
-
-            if (!empty($complexity_name)) {
-                $db->query('INSERT INTO complexity VALUES (default, ?)', [$complexity_name]);
-            } else {
-                $this->response->setStatusCode(422, 'missing parameters');
-            }
-        } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+        try {
+            $this->_auth();
+            $complexity = new Complexity();
+            $complexity->setName($this->_request->get('name'));
+            $complexity->saveComplexity();
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'not found');
+        } catch (HttpAccessException $e) {
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
         }
     }
 
     public function updateAction($id)
     {
-        if($this->_auth()) {
-            $complexity_name = Di::getDefault()->get('request')->get('name');
-            /** @var Complexity $complexity */
-            $complexity = Complexity::findFirst($id);
-
-            if ($complexity && !empty($complexity_name)) {
-                $transactionManager = new TransactionManager();
-                $transaction = $transactionManager->get();
-                $complexity->setTransaction($transaction);
-                $complexity->name = $complexity_name;
-
-                if($complexity->save() == false)
-                {
-                    $transaction->rollback();
-                    $this->response->setStatusCode(500, 'error save');
-                }
-                $transaction->commit();
-            } else {
-                $this->response->setStatusCode(422, 'missing parameters');
-            }
-        } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+        try {
+            $this->_auth();
+            $complexity = (new Complexity())->getById($id);
+            $complexity->setName($this->_request->get('name'));
+            $complexity->updateComplexity();
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'not found');
+        } catch (HttpAccessException $e) {
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
+        } catch (Exception $e) {
+            $this->response->setStatusCode($this->_httpCode->internalServerError());
         }
     }
 
     public function deleteAction($id)
     {
-        if($this->_auth()) {
+        try {
+            $this->_auth();
             /** @var Complexity $complexity */
-            $complexity = Complexity::findFirst($id);
-
-            if ($complexity) {
-                $transactionManager = new TransactionManager();
-                $transaction = $transactionManager->get();
-                $complexity->setTransaction($transaction);
-
-                if($complexity->delete() == false)
-                {
-                    $transaction->rollback();
-                    $this->response->setStatusCode(500, 'error delete');
-                }
-
-                $transaction->commit();
-            } else {
-                $this->response->setStatusCode(422, 'missing parameters');
-            }
-        } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+            $complexity = (new Complexity())->getById($id);
+            $complexity->deleteComplexity();
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'not found');
+        } catch (HttpAccessException $e) {
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
+        } catch (Exception $e) {
+            $this->response->setStatusCode($this->_httpCode->internalServerError());
         }
     }
 }

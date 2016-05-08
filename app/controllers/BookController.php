@@ -4,8 +4,6 @@ namespace app\controllers;
 use app\exception\HttpAccessException;
 use app\exception\HttpMissingParametersException;
 use app\exception\HttpNotFound;
-use app\exception\MissingParametersException;
-use app\library\HttpCode;
 use Phalcon\Di;
 use app\models\Book as Book;
 use app\models\Language as Language;
@@ -15,24 +13,10 @@ use \Phalcon\Exception;
 
 class BookController extends BaseController
 {
-    /** @var Request $_request  */
-    protected $_request = null;
-    /** @var Response $_request  */
-    protected $_response = null;
-    /** @var HttpCode $_request  */
-    protected $_httpCode = null;
-
-    public function initialize()
-    {
-        $this->_request = Di::getDefault()->get('request');
-        $this->_response = Di::getDefault()->get('response');
-        $this->_httpCode = Di::getDefault()->get('httpCode');
-    }
 
     public function listAction()
     {
         $resultJson = [];
-
         $language = Language::findFirst($this->_request->get('language'));
         $complexity = Complexity::findFirst($this->_request->get('complexity'));
         $category = Category::findFirst($this->_request->get('category'));
@@ -50,7 +34,6 @@ class BookController extends BaseController
             $resultJson[] = $book->bookToArray();
         }
 
-        $this->response->setStatusCode($this->_httpCode->ok());
         echo json_encode($resultJson, JSON_UNESCAPED_UNICODE);
     }
 
@@ -64,7 +47,6 @@ class BookController extends BaseController
             return;
         }
 
-        $this->response->setStatusCode($this->_httpCode->ok());
         echo json_encode($book->bookToArray(), JSON_UNESCAPED_UNICODE);
     }
 
@@ -77,7 +59,6 @@ class BookController extends BaseController
             $this->_mappingParameters($book);
             $book->insert();
             $this->response->setStatusCode($this->_httpCode->ok());
-            return;
         } catch (HttpAccessException $e) {
             $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
         } catch (HttpMissingParametersException $e) {
@@ -98,7 +79,6 @@ class BookController extends BaseController
             $this->_mappingParameters($book);
             $book->updateBook();
             $this->response->setStatusCode($this->_httpCode->ok());
-            return;
         } catch (HttpAccessException $e) {
             $this->response->setStatusCode($this->_httpCode->forbidden());
         } catch (HttpMissingParametersException $e) {
@@ -122,7 +102,6 @@ class BookController extends BaseController
             }
             $book->deleteBook();
             $this->response->setStatusCode($this->_httpCode->ok());
-            return;
         } catch(HttpAccessException $e) {
             $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
         } catch (HttpNotFound $e) {
@@ -133,20 +112,20 @@ class BookController extends BaseController
     }
 
     protected function _mappingParameters(Book $book)  {
-        if(!empty(Di::getDefault()->get('request')->get('title')) === false
-            || !empty(Di::getDefault()->get('request')->get('language_id')) === false
-            || !empty(Di::getDefault()->get('request')->get('complexity_id')) === false ) {
+        if(!empty($this->_request->get('title')) === false
+            || !empty($this->_request->get('language_id')) === false
+            || !empty($this->_request->get('complexity_id')) === false ) {
             throw new HttpMissingParametersException();
         }
 
-        $book->setTitle(Di::getDefault()->get('request')->get('title'));
-        $book->setDescription(Di::getDefault()->get('request')->get('description'));
-        $book->setDatePublish(Di::getDefault()->get('request')->get('date_publish'));
-        $book->setImages(Di::getDefault()->get('request')->get('images'));
-        $book->setExternalLinks(Di::getDefault()->get('request')->get('external_links'));
-        $book->setLanguageId(Di::getDefault()->get('request')->get('language_id'));
-        $book->setUrl(Di::getDefault()->get('request')->get('url'));
-        $book->setComplexityId(Di::getDefault()->get('request')->get('complexity_id'));
+        $book->setTitle($this->_request->get('title'));
+        $book->setDescription($this->_request->get('description'));
+        $book->setDatePublish($this->_request->get('date_publish'));
+        $book->setImages($this->_request->get('images'));
+        $book->setExternalLinks($this->_request->get('external_links'));
+        $book->setLanguageId($this->_request->get('language_id'));
+        $book->setUrl($this->_request->get('url'));
+        $book->setComplexityId($this->_request->get('complexity_id'));
         return $book;
     }
 }

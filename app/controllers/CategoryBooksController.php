@@ -1,65 +1,74 @@
 <?php
 namespace app\controllers;
 
+use app\exception\HttpAccessException;
+use app\exception\HttpNotFound;
+use app\models\Book;
+use app\models\Category;
+use app\models\CategoryBooks;
 use \Phalcon\Di as Di;
-use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
+use Phalcon\Exception;
 
 class CategoryBooksController extends BaseController
 {
     public function listAction()
     {
-        $categoryBooks = CategoryBooks::query()->execute();
-        echo json_encode($categoryBooks->toArray(), JSON_UNESCAPED_UNICODE);
-        exit;
+        try {
+            $categoryBooks = (new CategoryBooks())->getAllCategory();
+            if(!$categoryBooks) {
+                throw new HttpNotFound();
+            }
+            echo json_encode($categoryBooks->toArray(), JSON_UNESCAPED_UNICODE);
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+        }
     }
 
     public function categoryAction($id)
     {
-        $categoryBooks = CategoryBooks::findFirst($id);
-        echo json_encode($categoryBooks->toArray(), JSON_UNESCAPED_UNICODE);
-        exit;
+        try {
+            $categoryBooks = (new CategoryBooks())->getById($id);
+            if(!$categoryBooks) {
+                throw new HttpNotFound();
+            }
+            echo json_encode($categoryBooks->toArray(), JSON_UNESCAPED_UNICODE);
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'Not Found');
+        }
     }
 
     public function saveAction()
     {
-        if($this->_auth()) {
-            $db = Di::getDefault()->get('db');
-            $book_id = Di::getDefault()->get('request')->get('book_id');
-            $category_id = Di::getDefault()->get('request')->get('category_id');
+        try {
+            $this->_auth();
+            $book = (new Book())->getBookById($this->_request->get('book_id'));
+            $category = (new Category())->getById($this->_request->get('category_id'));
 
-            if (!empty($category_id) && !empty($book_id)) {
-                $db->query('INSERT INTO category_books VALUES (default, ?, ?)', [$book_id, $category_id]);
-            } else {
-                $this->response->setStatusCode(422, 'missing parameters');
+            if(!$book || !$category) {
+                throw new HttpNotFound();
             }
-        } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+
+            (new CategoryBooks())->saveCategoryBook($book, $category);
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'not found');
+        } catch (HttpAccessException $e) {
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
         }
     }
 
     public function deleteAction($id)
     {
-        if($this->_auth()) {
-            /** @var Category $category */
-            $categoryBooks = CategoryBooks::findFirst($id);
-
-            if ($categoryBooks) {
-                $transactionManager = new TransactionManager();
-                $transaction = $transactionManager->get();
-                $categoryBooks->setTransaction($transaction);
-
-                if($categoryBooks->delete() == false)
-                {
-                    $transaction->rollback();
-                    $this->response->setStatusCode(500, 'error delete');
-                }
-
-                $transaction->commit();
-            } else {
-                $this->response->setStatusCode(422, 'missing parameters');
-            }
-        } else {
-            $this->response->setStatusCode(403, 'cannot auth');
+        try {
+            $this->_auth();
+            /** @var CategoryBooks $categoryBooks */
+            $categoryBooks = (new CategoryBooks())->getById($id);
+            $categoryBooks->deleteCategoryBooks();
+        } catch (HttpNotFound $e) {
+            $this->response->setStatusCode($this->_httpCode->notFound(), 'not found');
+        } catch (HttpAccessException $e) {
+            $this->response->setStatusCode($this->_httpCode->forbidden(), 'cannot auth');
+        } catch (Exception $e) {
+            $this->response->setStatusCode($this->_httpCode->internalServerError());
         }
     }
 }

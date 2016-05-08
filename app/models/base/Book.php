@@ -10,6 +10,86 @@ class Book extends \Phalcon\Mvc\Model
     protected $date_publish;
     protected $images;
     protected $external_links;
+
+    /**
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getTitle()
+    {
+        return $this->title;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDateCreated()
+    {
+        return $this->date_created;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDatePublish()
+    {
+        return $this->date_publish;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getImages()
+    {
+        return $this->images;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getExternalLinks()
+    {
+        return $this->external_links;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLanguageId()
+    {
+        return $this->language_id;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getComplexityId()
+    {
+        return $this->complexity_id;
+    }
     protected $language_id;
     protected $url;
     protected $complexity_id;

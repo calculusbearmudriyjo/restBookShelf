@@ -15,7 +15,7 @@ class Book extends base\Book
             ->bind(['id' => $bookId])
             ->execute();
 
-        if(!is_array($books) || count($books) == 0) {
+        if(!$books) {
             throw new HttpNotFound;
         }
 

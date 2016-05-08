@@ -22,6 +22,22 @@ class Complexity extends \Phalcon\Mvc\Model
         return $this->name;
     }
 
+    /**
+     * @param mixed $id
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+    }
+
+    /**
+     * @param mixed $name
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
+    }
+
     public function initialize()
     {
         $this->hasOne(
