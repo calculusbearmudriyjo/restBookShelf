@@ -2,8 +2,10 @@
 namespace app\models;
 
 use app\exception\HttpNotFound;
+use Phalcon\Db\RawValue;
 use Phalcon\Di;
 use Phalcon\Exception;
+use Phalcon\Mvc\Model\Criteria;
 use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
 
 class Book extends base\Book
@@ -28,7 +30,7 @@ class Book extends base\Book
         $this->_addWhereIfExist($query, $language->getLinkedFieldName(), $language->getId());
         $this->_addWhereIfExist($query, $complexity->getLinkedFieldName(), $complexity->getId());
 
-        if($category != null)
+        if($category)
         {
             $query->leftJoin('app\models\base\CategoryBooks', 'app\models\base\CategoryBooks.book_id = app\models\Book.id');
             $query->conditions('app\models\base\CategoryBooks.category_id = :category:')
@@ -37,7 +39,7 @@ class Book extends base\Book
 
         $result = $query->execute();
 
-        if(!is_array($result) || count($result) == 0) {
+        if(!$result) {
             throw new HttpNotFound;
         }
 
@@ -69,8 +71,8 @@ class Book extends base\Book
         $transactionManager = new TransactionManager();
         $transaction = $transactionManager->get();
         $this->setTransaction($transaction);
-        $this->images = new \Phalcon\Db\RawValue($this->_convertArrayToPsqlArray($this->images));
-        $this->external_links = new \Phalcon\Db\RawValue($this->_convertArrayToPsqlArray($this->external_links));
+        $this->images = new RawValue($this->_convertArrayToPsqlArray($this->images));
+        $this->external_links = new RawValue($this->_convertArrayToPsqlArray($this->external_links));
 
         if($this->save() == false)
         {
@@ -124,13 +126,14 @@ class Book extends base\Book
     }
 
     /**
-     * @param \Phalcon\Mvc\Model\Criteria $criteria
+     * @param $columnValue
+     * @param Criteria $criteria
      * @param $columnName
-     * @return \Phalcon\Mvc\Model\Criteria
+     * @return Criteria
      */
-    protected function _addWhereIfExist(\Phalcon\Mvc\Model\Criteria $criteria, $columnName, $columnValue)
+    protected function _addWhereIfExist(Criteria $criteria, $columnName, $columnValue)
     {
-        $criteria->addWhere("{$columnName}_id = :{$columnName}:", [$columnName => $columnValue]);
+        $criteria->andWhere("{$columnName}_id = :{$columnName}:", [$columnName => $columnValue]);
         return $criteria;
     }
 

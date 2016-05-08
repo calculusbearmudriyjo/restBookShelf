@@ -6,7 +6,7 @@ class HttpCode
     private $OK = 200;
     private $FORBIDDEN = 403;
     private $NOT_FOUND = 404;
-    private $UNPROCESSABLE_ENTITY = 422;
+    private $UNPROCCESABLE_ENTITY = 422;
     private $INTERNAL_SERVER_ERROR = 500;
 
     /**
@@ -38,7 +38,7 @@ class HttpCode
      */
     public function unprocessableEntity()
     {
-        return $this->UNPROCESSABLE_ENTITY;
+        return $this->UNPROCCESABLE_ENTITY;
     }
 
     /**

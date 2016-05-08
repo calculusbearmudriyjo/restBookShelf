@@ -1,7 +1,6 @@
 <?php
 namespace app\models\base;
 
-use app\exception\HttpMissingParametersException;
 use app\exception\HttpWrongParameter;
 use Phalcon\Mvc\Model;
 
@@ -53,6 +52,7 @@ class Rating extends Model
 
     /**
      * @param mixed $rating
+     * @throws HttpWrongParameter
      */
     public function setRating($rating)
     {
