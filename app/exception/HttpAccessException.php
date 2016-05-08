@@ -1,7 +1,9 @@
 <?php
 namespace app\exception;
 
-class HttpAccessException extends \Phalcon\Exception
+use Phalcon\Exception;
+
+class HttpAccessException extends Exception
 {
 
 }

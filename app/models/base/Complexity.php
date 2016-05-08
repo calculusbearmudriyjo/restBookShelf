@@ -1,7 +1,9 @@
 <?php
 namespace app\models\base;
 
-class Complexity extends \Phalcon\Mvc\Model
+use Phalcon\Mvc\Model;
+
+class Complexity extends Model
 {
     protected $id;
     protected $name;

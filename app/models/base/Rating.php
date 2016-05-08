@@ -3,8 +3,9 @@ namespace app\models\base;
 
 use app\exception\HttpMissingParametersException;
 use app\exception\HttpWrongParameter;
+use Phalcon\Mvc\Model;
 
-class Rating extends \Phalcon\Mvc\Model
+class Rating extends Model
 {
     protected $id;
     protected $book_id;

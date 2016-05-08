@@ -7,7 +7,7 @@ use Phalcon\Di;
 use Phalcon\Exception;
 use Phalcon\Mvc\Model\Transaction\Manager as TransactionManager;
 
-class CategoryBooks extends \app\models\base\CategoryBooks
+class CategoryBooks extends base\CategoryBooks
 {
     public function getAllCategory() {
         return $this::query()->execute();

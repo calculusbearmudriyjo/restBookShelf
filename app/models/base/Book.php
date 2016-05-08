@@ -1,7 +1,9 @@
 <?php
 namespace app\models\base;
 
-class Book extends \Phalcon\Mvc\Model
+use Phalcon\Mvc\Model;
+
+class Book extends Model
 {
     protected $id;
     protected $title;

@@ -1,7 +1,9 @@
 <?php
 namespace app\models\base;
 
-class Language extends \Phalcon\Mvc\Model
+use Phalcon\Mvc\Model;
+
+class Language extends Model
 {
     protected $id;
     protected $name;
